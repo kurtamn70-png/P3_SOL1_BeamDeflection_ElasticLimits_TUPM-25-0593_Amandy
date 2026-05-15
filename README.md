@@ -32,7 +32,7 @@ This repository contains a computational pipeline for monitoring the structural 
 
 ## Live Simulation
 Access the interactive digital twin here:  
-**[View Live Wing Spar Animation](https://kurtamn70-png.github.io/P3_SOL1_BeamDeflection_ElasticLimits_TUPM-25-0593_Amandy/outputs/animation_structural_response.html)**
+[View Live Wing Spar Animation](https://kurtamn70-png.github.io/EDS_TUPM-25-0593_Amandy/outputs/animation_structural_response.html)
 
 ---
 
