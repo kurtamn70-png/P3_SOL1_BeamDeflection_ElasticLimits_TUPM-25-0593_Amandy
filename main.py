@@ -95,20 +95,19 @@ class WingSparAnalysisPipeline:
         plt.savefig('outputs/static_boxplot.png')
 
     def create_animations(self):
-        """Module 5: Animated System Behavior (2 Minimum)"""
+        """Module 5: Optimized Animation"""
         if self.cleaned_df is None: return
         
-        # Sort values so the animation flows smoothly from low load to high load
-        plot_df = self.cleaned_df.sort_values(by='load_factor_g')
+        # Take every 50th row to reduce file size significantly
+        sampled_df = self.cleaned_df.iloc[::50, :].sort_values(by='load_factor_g')
         
-        # Animation 1: Deflection Response over Load Levels
-        # Using 'load_factor_g' as the frame instead of 'timestamp'
-        fig1 = px.scatter(plot_df, x="load_factor_g", y="deflection_noisy", 
-                         animation_frame="load_factor_g", 
+        fig1 = px.scatter(sampled_df, x="load_factor_g", y="deflection_noisy", 
+                         animation_frame="load_factor_g",
                          range_x=[-1, 11], range_y=[-1, 1],
-                         title="Structural Response Dynamics: Load vs Deflection")
+                         title="Structural Response Dynamics")
         
-        fig1.write_html("outputs/animation_structural_response.html")
+        # This is the ONLY line you need to save the file correctly
+        fig1.write_html("outputs/animation_structural_response.html", include_plotlyjs='cdn')
         print("Animations saved successfully to the /outputs folder.")
 
 # Execution Entry Point
