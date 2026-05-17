@@ -95,34 +95,41 @@ class WingSparAnalysisPipeline:
         plt.savefig('outputs/static_boxplot.png')
 
     def create_animations(self):
-        """Module 5: Dual-Dynamic Visualization Pipeline"""
+        """Module 5: Exporting Interactive HTML and Auto-playing GIF"""
+        import imageio
         if self.df is None: return
         
-        # --- Animation 1: Structural Response (Single Point vs Load) ---
-        # Using cleaned_df (Node 19 only)
-        sampled_df = self.cleaned_df.iloc[::50, :].sort_values(by='load_factor_g')
-        fig1 = px.scatter(sampled_df, x="load_factor_g", y="deflection_noisy", 
-                         animation_frame="load_factor_g",
-                         range_x=[-1, 11], range_y=[-1, 1],
-                         title="Animation A: Tip Deflection vs Load Factor")
-        fig1.write_html("outputs/animation_structural_response.html", include_plotlyjs='cdn')
-
-        # --- Animation 2: Spatial Bending Dynamics (Whole Spar) ---
-        # We need the full df here to see all nodes (0-19)
-        # We'll pick 10 specific timestamps (sample_ids) to animate the "bend"
-        spatial_samples = self.df['sample_id'].unique()[::100]
+        # --- PART A: Generate Interactive HTML ---
+        spatial_samples = self.df['sample_id'].unique()[::250]
         spatial_df = self.df[self.df['sample_id'].isin(spatial_samples)].sort_values(by=['sample_id', 'node_id'])
         
-        fig2 = px.line(spatial_df, x="x_position", y="deflection_noisy", 
+        fig = px.line(spatial_df, x="x_position", y="deflection_noisy", 
                         animation_frame="sample_id",
-                        range_x=[0, 3.5], range_y=[-0.2, 0.2],
-                        markers=True,
-                        title="Animation B: Real-Time Wing Spar Bending Profile")
+                        range_x=[0, 3.5], range_y=[-0.15, 0.15],
+                        markers=True, title="Real-Time Wing Spar Bending Profile")
         
-        fig2.update_layout(xaxis_title="Spanwise Position (m)", yaxis_title="Deflection (m)")
-        fig2.write_html("outputs/animation_spatial_bending.html", include_plotlyjs='cdn')
+        fig.write_html("outputs/animation_spatial_bending.html", include_plotlyjs='cdn')
+
+        # --- PART B: Generate the GIF for the /outputs folder ---
+        print("Generating GIF frames... please wait.")
+        frames = []
+        # Use a smaller subset for the GIF to keep file size low
+        gif_samples = self.df['sample_id'].unique()[::400] 
         
-        print("Dual animations saved: 'Structural Response' and 'Spatial Bending'.")
+        for sample in gif_samples:
+            frame_df = self.df[self.df['sample_id'] == sample].sort_values(by='node_id')
+            # Create a static "snapshot" for each frame
+            frame_fig = px.line(frame_df, x="x_position", y="deflection_noisy", 
+                                range_x=[0, 3.5], range_y=[-0.15, 0.15],
+                                markers=True, title="Bending Dynamics")
+            
+            # Convert Plotly figure to an image in memory
+            img_bytes = frame_fig.to_image(format="png")
+            frames.append(imageio.v2.imread(img_bytes))
+
+        # Save the list of images as a GIF in your outputs folder
+        imageio.v2.mimsave('outputs/spatial_bending.gif', frames, fps=5, loop=0)
+        print("Success: 'outputs/spatial_bending.gif' has been created.")
 # Execution Entry Point
 if __name__ == "__main__":
     # Ensure output directories exist for GitHub structure [cite: 88]
